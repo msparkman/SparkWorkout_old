@@ -3,31 +3,47 @@ require 'mongo'
 include Mongo
 
 class SparkWorkoutDatabase
-	# Inserts an exercise document into the database
-	def insert_exercise(name, type, number_of_sets, number_of_reps)
+	# Inserts a routine document
+	def insert_routine(date, type, name)
 		mongo_client = MongoClient.new("localhost")
 		database = mongo_client.db("SPARKWORKOUT")
-		exercises_collection = database["EXERCISES"]
+		routines_collection = database["ROUTINES"]
 		
-		exercise_document = {"NAME" => name, 
-			"TYPE" => type, 
-			"NUM_SETS" => number_of_sets, 
-			"NUM_REPS" => number_of_reps}
+		routine_document = {"DATE" => date,
+		"TYPE" => type,
+		"NAME" => name}
 			
-		exercises_collection.insert(exercise_document)
+		return routines_collection.insert(routine_document)
 	end
 	
-	# Retrieves an exercise document from the database
-	def get_exercise(name, type)
+	# Inserts an exercise document
+	def insert_exercise(routine_id, type, name, number_of_reps, weight)
 		mongo_client = MongoClient.new("localhost")
 		database = mongo_client.db("SPARKWORKOUT")
-		exercises_collection = database["EXERCISES"]
+		exercise_collection = database[type + "_" + name]
 		
-		# Use find_one in order to return a single document instead of a cursor
-		return exercises_collection.find_one("NAME" => name, "TYPE" => type)
+		exercise_document = {"ROUTINE_ID" => routine_id,		
+			"NUM_REPS" => number_of_reps, 
+			"WEIGHT" => weight}
+			
+		exercise_collection.insert(exercise_document)
+	end
+	
+	# Retrieves the most recent exercise routine for a given exercise
+	def get_last_routine(type, name)
+		mongo_client = MongoClient.new("localhost")
+		database = mongo_client.db("SPARKWORKOUT")
+
+		# Get the highest routine ID from the routines collection for that type and name
+		last_routine_document = database["ROUTINES"].find("TYPE" => type, "NAME" => name).sort("_id" => -1).limit(1).first()
 		
-		# TODO if I wanted to return a cursor, I would need to perform the .each method and throw each "row" into an array element, etc. like this: 
-		# result = {}
-		# exercises_collection.find().each { |row| id = row.delete('id'); result["#{id}"] = row }
+		# Retrieve all records from the collection that have that routine ID and sort in ascending order
+		exercise_collection = database[type + "_" + name]
+		exercise_result_cursor = exercise_collection.find("ROUTINE_ID" => last_routine_document["_id"]).sort("_id" => 1)
+		
+		exercise_result_array = {}
+		exercise_result_cursor.each { |row| id = row.delete("_id"); exercise_result_array["#{id}"] = row }
+		
+		return exercise_result_array
 	end
 end
