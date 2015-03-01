@@ -30,19 +30,34 @@ class SparkWorkoutDatabase
 	end
 	
 	# Retrieves the most recent exercise routine for a given exercise
-	def get_last_routine(type, name)
+	def get_last_routine(type = '', name = '')
 		mongo_client = MongoClient.new("localhost")
 		database = mongo_client.db("SPARKWORKOUT")
 
-		# Get the highest routine ID from the routines collection for that type and name
-		last_routine_document = database["ROUTINES"].find("TYPE" => type, "NAME" => name).sort("_id" => -1).limit(1).first()
-		
+		# If no type or name were provided, retrieve the last routine entered
+		if (type.nil? or type.empty? or name.nil? or name.empty?)
+			last_routine_document = database["ROUTINES"].find().sort("_id" => -1).limit(1).first()
+			type = last_routine_document["TYPE"]
+			name = last_routine_document["NAME"]
+		else
+			# Get the highest routine ID from the routines collection for that type and name
+			last_routine_document = 
+				database["ROUTINES"].find("TYPE" => type, "NAME" => name).sort("_id" => -1).limit(1).first()
+		end
+
 		# Retrieve all records from the collection that have that routine ID and sort in ascending order
 		exercise_collection = database[type + "_" + name]
 		exercise_result_cursor = exercise_collection.find("ROUTINE_ID" => last_routine_document["_id"]).sort("_id" => 1)
 		
 		exercise_result_array = {}
-		exercise_result_cursor.each { |row| id = row.delete("_id"); exercise_result_array["#{id}"] = row }
+
+		exercise_result_cursor.each { |row| 
+			id = row.delete("_id"); 
+			exercise_result_array["#{id}"] = row 
+		}
+
+		exercise_result_array["TYPE"] = type
+		exercise_result_array["NAME"] = name
 		
 		return exercise_result_array
 	end

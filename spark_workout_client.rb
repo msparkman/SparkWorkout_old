@@ -1,53 +1,76 @@
 require 'date'
 require_relative 'spark_workout_database'
 
-print "Would you like to save a workout today? "
-answer = gets.chomp
-answer = answer.downcase
- 
-# If the user inputs anything other than 'yes' or 'y', quit
-if !['yes', 'y'].include? (answer)
-	abort("Goodbye.")
+def save_workout()
+	spark_workout_database = SparkWorkoutDatabase.new
+
+	# Get the routine information
+	print "What type of workout was this? (Ex. Chest, arms, etc.) "
+	type = gets.chomp
+	type = type.upcase.tr(' ', '_')
+
+	print "What exercise was done? "
+	name = gets.chomp
+	name = name.upcase.tr(' ', '_')
+
+	# Insert a routine document
+	routine_id = spark_workout_database.insert_routine(Time.now.strftime("%Y/%m/%d %H:%M"), type, name)
+
+	anotherSet = true
+
+	# Loop through and enter sets for this exercise
+	while (anotherSet)
+		print "How many reps? "
+		number_of_reps = gets.chomp
+
+		print "Weight? "
+		weight = gets.chomp
+		
+		# Insert the exercise document
+		spark_workout_database.insert_exercise(routine_id, type, name, number_of_reps, weight)
+		
+		print "Enter another set? "
+		answer = gets.chomp
+		answer = answer.downcase
+		if !['yes', 'y'].include? (answer)
+			anotherSet = false
+		end
+	end
+
+	view_workout(type, name)
 end
 
-spark_workout_database = SparkWorkoutDatabase.new
+def view_workout(type, name)
+	spark_workout_database = SparkWorkoutDatabase.new
 
-# Get the routine information
-print "What type of workout was this? (Ex. Chest, arms, etc.) "
-type = gets.chomp
-type = type.upcase.tr(' ', '_')
+	last_routine_array = spark_workout_database.get_last_routine(type, name)
 
-print "What exercise was done? "
-name = gets.chomp
-name = name.upcase.tr(' ', '_')
+	puts "\nHere's your #{last_routine_array["TYPE"]} #{last_routine_array["NAME"]} routine: "
+	# Remove the type and name elements from the array so they don't get used in the following loop
+	last_routine_array.delete("TYPE")
+	last_routine_array.delete("NAME")
 
-# Insert a routine document
-routine_id = spark_workout_database.insert_routine(Time.now.strftime("%Y/%m/%d %H:%M"), type, name)
-
-anotherSet = true
-
-# Loop through and enter sets for this exercise
-while (anotherSet)
-	print "How many reps? "
-	number_of_reps = gets.chomp
-
-	print "Weight? "
-	weight = gets.chomp
-	
-	# Insert the exercise document
-	spark_workout_database.insert_exercise(routine_id, type, name, number_of_reps, weight)
-	
-	print "Enter another set? "
-	answer = gets.chomp
-	answer = answer.downcase
-	if !['yes', 'y'].include? (answer)
-		anotherSet = false
+	last_routine_array.each do |exercise|
+		puts "Reps: #{exercise[1]["NUM_REPS"].to_s} at #{exercise[1]["WEIGHT"].to_s} lbs."
 	end
 end
 
-# TODO this is just a test to display the workout that was entered
-last_routine_array = spark_workout_database.get_last_routine(type, name)
-puts "\nHere's your " + type + " " + name + " routine: "
-last_routine_array.each do |exercise|
-	puts "Reps: " + exercise[1]["NUM_REPS"].to_s + " at " + exercise[1]["WEIGHT"].to_s + " lbs."
+while (true)
+	puts "\nSelect an action:"
+	puts "1. Save a workout"
+	puts "2. View a workout"
+	puts "3. Quit"
+
+	answer = gets.chomp
+	
+	case answer
+	when '1'
+		save_workout()
+	when '2'
+		view_workout(nil, nil)
+	when '3'
+		abort("Goodbye.")
+	else
+		puts "You have selected #{answer}, but that doesn't appear to be a valid option."
+	end
 end
