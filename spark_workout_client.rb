@@ -1,33 +1,31 @@
 require 'date'
-require_relative 'spark_workout_database'
+require_relative 'spark_workout_server'
 
 def save_workout()
-	spark_workout_database = SparkWorkoutDatabase.new
+	spark_workout_server = SparkWorkoutServer.new
 
 	# Get the routine information
 	print "What type of workout was this? (Ex. Chest, arms, etc.) "
-	type = gets.chomp
-	type = type.upcase.tr(' ', '_')
+	type = gets
 
 	print "What exercise was done? "
-	name = gets.chomp
-	name = name.upcase.tr(' ', '_')
+	name = gets
 
 	# Insert a routine document
-	routine_id = spark_workout_database.insert_routine(Time.now.strftime("%Y/%m/%d %H:%M"), type, name)
+	routine_id = spark_workout_server.insert_routine(Time.now.strftime("%Y/%m/%d %H:%M"), type, name)
 
 	anotherSet = true
 
 	# Loop through and enter sets for this exercise
 	while (anotherSet)
 		print "How many reps? "
-		number_of_reps = gets.chomp
+		number_of_reps = gets
 
 		print "Weight? "
-		weight = gets.chomp
+		weight = gets
 		
 		# Insert the exercise document
-		spark_workout_database.insert_exercise(routine_id, type, name, number_of_reps, weight)
+		spark_workout_server.insert_exercise_set(routine_id, type, name, number_of_reps, weight)
 		
 		print "Enter another set? "
 		answer = gets.chomp
@@ -41,9 +39,9 @@ def save_workout()
 end
 
 def view_workout(type, name)
-	spark_workout_database = SparkWorkoutDatabase.new
+	spark_workout_server = SparkWorkoutServer.new
 
-	last_routine_array = spark_workout_database.get_last_routine(type, name)
+	last_routine_array = spark_workout_server.get_last_routine(type, name)
 
 	puts "\nHere's your #{last_routine_array["TYPE"]} #{last_routine_array["NAME"]} routine: "
 	# Remove the type and name elements from the array so they don't get used in the following loop

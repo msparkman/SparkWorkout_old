@@ -2,6 +2,7 @@ require 'mongo'
 
 include Mongo
 
+# A class for interacting with the SparkWorkout mongodb
 class SparkWorkoutDatabase
 	# Inserts a routine document
 	def insert_routine(date, type, name)
@@ -17,7 +18,7 @@ class SparkWorkoutDatabase
 	end
 	
 	# Inserts an exercise document
-	def insert_exercise(routine_id, type, name, number_of_reps, weight)
+	def insert_exercise_set(routine_id, type, name, number_of_reps, weight)
 		mongo_client = MongoClient.new("localhost")
 		database = mongo_client.db("SPARKWORKOUT")
 		exercise_collection = database[type + "_" + name]
@@ -45,17 +46,25 @@ class SparkWorkoutDatabase
 				database["ROUTINES"].find("TYPE" => type, "NAME" => name).sort("_id" => -1).limit(1).first()
 		end
 
-		# Retrieve all records from the collection that have that routine ID and sort in ascending order
-		exercise_collection = database[type + "_" + name]
-		exercise_result_cursor = exercise_collection.find("ROUTINE_ID" => last_routine_document["_id"]).sort("_id" => 1)
-		
 		exercise_result_array = {}
 
+		# Retrieve all records from the collection that have that routine ID and sort in ascending order
+		exercise_collection = database[type + "_" + name]
+
+		# Return the empty array since no routine or collection as found for that type and name
+		if (last_routine_document.nil? or exercise_collection.nil?)
+			return exercise_result_array
+		end
+
+		exercise_result_cursor = exercise_collection.find("ROUTINE_ID" => last_routine_document["_id"]).sort("_id" => 1)
+
+		# Loop through each document to populate the array being returned
 		exercise_result_cursor.each { |row| 
 			id = row.delete("_id"); 
 			exercise_result_array["#{id}"] = row 
 		}
 
+		# Add in the type and name
 		exercise_result_array["TYPE"] = type
 		exercise_result_array["NAME"] = name
 		
