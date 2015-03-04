@@ -1,35 +1,44 @@
+require 'logger'
 require 'sinatra'
 require_relative 'spark_workout_server'
 
+#file = File.open('spark_workout.log', File::WRONLY | File::APPEND | File::CREAT)
+#logger = Logger.new(file, 5, 1024000)
+# TODO i can't figure out how to get the logger to write to the specified file so for now we will just use STDOUT
+logger = Logger.new(STDOUT)
+logger.level = Logger::DEBUG
+
 get '/get_last_routine' do
-	# matches "GET /get_last_routine?type=<some type>&name=<some name>"
-	type = params[:type]
-	name = params[:name]
+	logger.debug('get_last_routine') { 'BEGIN' }
 
-	# Replace any url entities with valid characters
-	type = type.tr('%20', ' ')
-	name = name.tr('%20', ' ')
+	begin
+		# matches "GET /get_last_routine?type=<some type>&name=<some name>"
+		type = params[:type]
+		name = params[:name]
 
-	spark_workout_server = SparkWorkoutServer.new
-	last_routine_array = spark_workout_server.get_last_routine(type, name)
+		# Replace any url entities with valid characters
+		type = type.tr('%20', ' ')
+		name = name.tr('%20', ' ')
 
-	# TODO the following is just to test out the web services. Normally we would just return the array back to the user to be handled
-	puts "\nHere's your #{last_routine_array["TYPE"]} #{last_routine_array["NAME"]} routine: "
-	# Remove the type and name elements from the array so they don't get used in the following loop
-	last_routine_array.delete("TYPE")
-	last_routine_array.delete("NAME")
-
-	last_routine_array.each do |exercise|
-		puts "Reps: #{exercise[1]["NUM_REPS"].to_s} at #{exercise[1]["WEIGHT"].to_s} lbs."
+		spark_workout_server = SparkWorkoutServer.new
+		return spark_workout_server.get_last_routine(type, name)
+	ensure
+		logger.debug('get_last_routine') { 'END' }
 	end
 end
 
 post '/insert_routine' do
-	# matches "POST /insert_routine?date=<some date>&type=<some type>&name=<some name>"
-	date = params[:date]
-	type = params[:type]
-	name = params[:name]
+	logger.debug('insert_routine') { 'BEGIN' }
 
-	spark_workout_server = SparkWorkoutServer.new
-	spark_workout_server.insert_routine(date, type, name)
+	begin
+		# matches "POST /insert_routine?date=<some date>&type=<some type>&name=<some name>"
+		date = params[:date]
+		type = params[:type]
+		name = params[:name]
+
+		spark_workout_server = SparkWorkoutServer.new
+		spark_workout_server.insert_routine(date, type, name)
+	ensure
+		logger.debug('insert_routine') { 'END' }
+	end
 end
