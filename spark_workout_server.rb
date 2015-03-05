@@ -17,7 +17,7 @@ class SparkWorkoutServer
 	end
 
 	# Sends an exercise to be inserted in the database
-	def insert_exercise_set(routine_id, type, name, number_of_reps, weight)
+	def insert_exercise_set(routine_id, type, name, number_of_reps, weight, comment)
 		spark_workout_database = SparkWorkoutDatabase.new
 
 		# Modify the given information for database use
@@ -27,7 +27,7 @@ class SparkWorkoutServer
 		name = name.upcase.tr(' ', '_')
 
 		# Insert a routine document and return its Document ID from the database
-		return spark_workout_database.insert_exercise_set(routine_id, type, name, number_of_reps, weight)
+		return spark_workout_database.insert_exercise_set(routine_id, type, name, number_of_reps, weight, comment)
 	end
 
 	# Retrieves the information regarding the last routine entered for a given type and name from the database

@@ -18,14 +18,15 @@ class SparkWorkoutDatabase
 	end
 	
 	# Inserts an exercise document
-	def insert_exercise_set(routine_id, type, name, number_of_reps, weight)
+	def insert_exercise_set(routine_id, type, name, number_of_reps, weight, comment)
 		mongo_client = MongoClient.new("localhost")
 		database = mongo_client.db("SPARKWORKOUT")
 		exercise_collection = database[type + "_" + name]
 		
 		exercise_document = {"ROUTINE_ID" => routine_id,		
 			"NUM_REPS" => number_of_reps, 
-			"WEIGHT" => weight}
+			"WEIGHT" => weight,
+			"COMMENT" => comment}
 			
 		exercise_collection.insert(exercise_document)
 	end

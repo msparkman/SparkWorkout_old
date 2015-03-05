@@ -24,8 +24,11 @@ def save_workout()
 		print "Weight? "
 		weight = gets
 		
+		print "Comment? "
+		comment = gets
+
 		# Insert the exercise document
-		spark_workout_server.insert_exercise_set(routine_id, type, name, number_of_reps, weight)
+		spark_workout_server.insert_exercise_set(routine_id, type, name, number_of_reps, weight, comment)
 		
 		print "Enter another set? "
 		answer = gets.chomp
