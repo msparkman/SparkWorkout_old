@@ -1,3 +1,4 @@
+require 'date'
 require 'logger'
 require 'sinatra'
 require_relative 'spark_workout_server'
@@ -8,8 +9,13 @@ require_relative 'spark_workout_server'
 logger = Logger.new(STDOUT)
 logger.level = Logger::DEBUG
 
+get '/' do 
+	erb :index
+end
+
 get '/get_last_routine' do
-	logger.debug('get_last_routine') { 'BEGIN' }
+	METHOD_NAME = 'get_last_routine'
+	logger.debug(METHOD_NAME) { 'BEGIN' }
 
 	begin
 		# matches "GET /get_last_routine?type=<some type>&name=<some name>"
@@ -17,28 +23,48 @@ get '/get_last_routine' do
 		name = params[:name]
 
 		# Replace any url entities with valid characters
-		type = type.tr('%20', ' ')
-		name = name.tr('%20', ' ')
+		HTML_SPACE = '%20'
+		type = type.tr(HTML_SPACE, ' ')
+		name = name.tr(HTML_SPACE, ' ')
 
 		spark_workout_server = SparkWorkoutServer.new
 		return spark_workout_server.get_last_routine(type, name)
 	ensure
-		logger.debug('get_last_routine') { 'END' }
+		logger.debug(METHOD_NAME) { 'END' }
 	end
 end
 
-post '/insert_routine' do
-	logger.debug('insert_routine') { 'BEGIN' }
+post '/save_workout' do
+	METHOD_NAME = 'save_workout'
+	logger.debug(METHOD_NAME) { 'BEGIN' }
 
 	begin
-		# matches "POST /insert_routine?date=<some date>&type=<some type>&name=<some name>"
-		date = params[:date]
+		# matches "POST /save_workout"
 		type = params[:type]
 		name = params[:name]
+		set_array = params[:set_array]
 
+		# Insert the routine
 		spark_workout_server = SparkWorkoutServer.new
-		spark_workout_server.insert_routine(date, type, name)
+		routine_id = spark_workout_server.insert_routine(
+			Time.now.strftime("%Y/%m/%d %H:%M"), 
+			type, 
+			name)
+
+		# Insert each set
+		set_array.each do |set|
+			spark_workout_server.insert_exercise_set(
+			routine_id, 
+			type, 
+			name, 
+			set[1]['number_of_reps'], 
+			set[1]['weight'], 
+			set[1]['comment'])
+		end
+
+		# Send the index page back out in case they want to enter another routine
+		erb :index
 	ensure
-		logger.debug('insert_routine') { 'END' }
+		logger.debug(METHOD_NAME) { 'END' }
 	end
 end
