@@ -9,7 +9,7 @@ require_relative 'spark_workout_server'
 logger = Logger.new(STDOUT)
 logger.level = Logger::DEBUG
 
-get '/' do 
+get '/' do
 	erb :index
 end
 
@@ -51,18 +51,21 @@ post '/save_workout' do
 			type, 
 			name)
 
+		# TODO figure out what the contents of the array are
+		puts set_array.to_s
+
 		# Insert each set
 		set_array.each do |set|
 			spark_workout_server.insert_exercise_set(
 			routine_id, 
 			type, 
 			name, 
-			set[1]['number_of_reps'], 
-			set[1]['weight'], 
-			set[1]['comment'])
+			set['number_of_reps'], 
+			set['weight'], 
+			set['comment'])
 		end
 
-		# Send the index page back out in case they want to enter another routine
+		# Send the index page back out in case they want to enter another routine 
 		erb :index
 	ensure
 		logger.debug(METHOD_NAME) { 'END' }

@@ -1,18 +1,26 @@
+<script type="text/javascript">
+	var counter = 1;
+	function addSet(divId) {
+		counter++;
+		var newDiv = document.createElement('div');
+		newDiv.innerHTML = "<b>Set " + counter + ":</b><br />" +
+			"Number of reps: <input type=\"text\" name=\"set_array[][number_of_reps]\" /><br />" +
+			"Weight: <input type=\"text\" name=\"set_array[][weight]\" /><br />" +
+			"Comment: <input type=\"text\" name=\"set_array[][comment]\" /><br />";
+		document.getElementById(divId).appendChild(newDiv);
+	}
+</script>
 <h1>Enter your workout:</h1>
 <form method="post" action="/save_workout">
 	Type: <input type="text" name="type" /><br />
 	Name: <input type="text" name="name" /><br /><br />
-	<h3>Set 1:</h3><br />
-	Number of reps: <input type="text" name="set_array[set1][number_of_reps]" /><br />
-	Weight: <input type="text" name="set_array[set1][weight]" /><br />
-	Comment: <input type="text" name="set_array[set1][comment]" /><br /><br />
-	<h3>Set 2:</h3><br />
-	Number of reps: <input type="text" name="set_array[set2][number_of_reps]" /><br />
-	Weight: <input type="text" name="set_array[set2][weight]" /><br />
-	Comment: <input type="text" name="set_array[set2][comment]" /><br /><br />
-	<h3>Set 3:</h3><br />
-	Number of reps: <input type="text" name="set_array[set3][number_of_reps]" /><br />
-	Weight: <input type="text" name="set_array[set3][weight]" /><br />
-	Comment: <input type="text" name="set_array[set3][comment]" /><br /><br />
+	<div id="setsDiv">
+		<b>Set 1:</b><br />
+		Number of reps: <input type="text" name="set_array[][number_of_reps]" /><br />
+		Weight: <input type="text" name="set_array[][weight]" /><br />
+		Comment: <input type="text" name="set_array[][comment]" />
+	</div><br />
+	<input type="button" value="Add another set" onClick="addSet('setsDiv');">
+	<br /><br />
 	<input type="submit" value="Save Workout" />
 </form>
