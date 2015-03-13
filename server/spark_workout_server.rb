@@ -8,9 +8,9 @@ class SparkWorkoutServer
 
 		# Modify the given information for database use
 		type = type.chomp
-		type = type.upcase.tr(' ', '_')
+		type = type.downcase.tr(' ', '_')
 		name = name.chomp
-		name = name.upcase.tr(' ', '_')
+		name = name.downcase.tr(' ', '_')
 
 		# Insert a routine document and return its Document ID from the database
 		return spark_workout_database.insert_routine(date, type, name)
@@ -22,9 +22,9 @@ class SparkWorkoutServer
 
 		# Modify the given information for database use
 		type = type.chomp
-		type = type.upcase.tr(' ', '_')
+		type = type.downcase.tr(' ', '_')
 		name = name.chomp
-		name = name.upcase.tr(' ', '_')
+		name = name.downcase.tr(' ', '_')
 
 		# Insert a routine document and return its Document ID from the database
 		return spark_workout_database.insert_exercise_set(routine_id, type, name, number_of_reps, weight, comment)
@@ -36,9 +36,9 @@ class SparkWorkoutServer
 
 		# Modify the given information for database use
 		type = type.chomp
-		type = type.upcase.tr(' ', '_')
+		type = type.downcase.tr(' ', '_')
 		name = name.chomp
-		name = name.upcase.tr(' ', '_')
+		name = name.downcase.tr(' ', '_')
 
 		# Return an array containing the last routine's workout information
 		return spark_workout_database.get_last_routine(type, name)

@@ -3,9 +3,7 @@ require 'logger'
 require 'sinatra'
 require_relative 'spark_workout_server'
 
-#file = File.open('spark_workout.log', File::WRONLY | File::APPEND | File::CREAT)
-#logger = Logger.new(file, 5, 1024000)
-# TODO i can't figure out how to get the logger to write to the specified file so for now we will just use STDOUT
+# Log out to the terminal
 logger = Logger.new(STDOUT)
 logger.level = Logger::DEBUG
 
@@ -50,9 +48,6 @@ post '/save_workout' do
 			Time.now.strftime("%Y/%m/%d %H:%M"), 
 			type, 
 			name)
-
-		# TODO figure out what the contents of the array are
-		puts set_array.to_s
 
 		# Insert each set
 		set_array.each do |set|
