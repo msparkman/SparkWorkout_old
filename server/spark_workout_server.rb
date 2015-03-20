@@ -25,6 +25,9 @@ class SparkWorkoutServer
 		type = type.downcase.tr(' ', '_')
 		name = name.chomp
 		name = name.downcase.tr(' ', '_')
+		number_of_reps = number_of_reps.chomp
+		weight = weight.chomp
+		comment = comment.chomp
 
 		# Insert a routine document and return its Document ID from the database
 		return spark_workout_database.insert_exercise_set(routine_id, type, name, number_of_reps, weight, comment)
@@ -35,12 +38,24 @@ class SparkWorkoutServer
 		spark_workout_database = SparkWorkoutDatabase.new
 
 		# Modify the given information for database use
-		type = type.chomp
-		type = type.downcase.tr(' ', '_')
-		name = name.chomp
-		name = name.downcase.tr(' ', '_')
+		if !type.nil? and !type.empty?
+			type = type.chomp
+			type = type.downcase.tr(' ', '_')
+		end
+
+		if  !name.nil? and !name.empty?
+			name = name.chomp
+			name = name.downcase.tr(' ', '_')
+		end
 
 		# Return an array containing the last routine's workout information
 		return spark_workout_database.get_last_routine(type, name)
+	end
+
+	def get_all_routines()
+		spark_workout_database = SparkWorkoutDatabase.new
+
+		# Return an array containing all the routines' workout information
+		return spark_workout_database.get_all_routines()
 	end
 end
