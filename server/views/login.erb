@@ -1,0 +1,17 @@
+<% if !@e.nil? %>
+<%= @e.message %><br /><br />
+<% end %>
+<h1>Login:</h1>
+<form method="post" action="/login">
+	Username: <input type="text" name="username" /><br />
+	Password: <input type="password" name="password" /><br /><br />
+	<br /><br />
+	<input type="submit" value="Login" />
+</form><br /><br />
+<h1>Register:</h1>
+<form method="post" action="/register">
+	Username: <input type="text" name="username" /><br />
+	Password: <input type="password" name="password" /><br /><br />
+	<br /><br />
+	<input type="submit" value="Register" />
+</form>

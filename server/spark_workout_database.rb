@@ -7,15 +7,61 @@ class SparkWorkoutDatabase
 	@@database_url = "mongodb://msparkman:msparkman@ds039960.mongolab.com:39960/sparkworkout"
 	@@database_port = 39960
 
+	# Returns a user's user_id
+	def insert_user(username, password, date_created)
+		mongo_client = MongoClient.from_uri(@@database_url)
+		database = mongo_client.db("sparkworkout")
+		users_collection = database["users"]
+
+		user_document = {"username" => username,
+						 "password" => password,
+						 "date_created" => date_created}
+			
+		return users_collection.insert(user_document)
+	end	
+
+	# Returns a user's user_id
+	def get_user_id(username)
+		mongo_client = MongoClient.from_uri(@@database_url)
+		database = mongo_client.db("sparkworkout")
+		users_collection = database["users"]
+
+		# Query by username and only return the document ID
+		user_document = users_collection.find({"username" => username}, {:fields => ["_id"]}).limit(1).first()
+
+		if user_document.nil? or user_document.empty?
+			return nil
+		else
+			return user_document["_id"]
+		end
+	end
+
+	# Returns a user's user_id
+	def get_user_information(username)
+		mongo_client = MongoClient.from_uri(@@database_url)
+		database = mongo_client.db("sparkworkout")
+		users_collection = database["users"]
+
+		# Query by username and only return the document ID
+		user_document = users_collection.find("username" => username).limit(1).first()
+
+		if user_document.nil? or user_document.empty?
+			return nil
+		else
+			return user_document
+		end
+	end
+
 	# Inserts a routine document
-	def insert_routine(date, type, name)
+	def insert_routine(user_id, date, type, name)
 		mongo_client = MongoClient.from_uri(@@database_url)
 		database = mongo_client.db("sparkworkout")
 		routines_collection = database["routines"]
 		
-		routine_document = {"date" => date,
-			"type" => type,
-			"name" => name}
+		routine_document = {"user_id" => user_id,
+							"date" => date,
+							"type" => type,
+							"name" => name}
 			
 		return routines_collection.insert(routine_document)
 	end
@@ -27,21 +73,22 @@ class SparkWorkoutDatabase
 		exercise_collection = database[type + "_" + name]
 		
 		exercise_document = {"routine_id" => routine_id,		
-			"num_reps" => number_of_reps, 
-			"weight" => weight,
-			"comment" => comment}
+							 "num_reps" => number_of_reps, 
+							 "weight" => weight,
+							 "comment" => comment}
 			
 		exercise_collection.insert(exercise_document)
 	end
 	
 	# Retrieves the most recent exercise routine for a given exercise
-	def get_last_routine(type, name)
+	def get_last_routine(user_id, type, name)
 		mongo_client = MongoClient.from_uri(@@database_url)
 		database = mongo_client.db("sparkworkout")
+		routines_collection = database["routines"]
 
 		# If no type or name were provided, retrieve the last routine entered
 		if type.nil? or type.empty? or name.nil? or name.empty?
-			last_routine_document = database["routines"].find().sort("_id" => -1).limit(1).first()
+			last_routine_document = routines_collection.find().sort("_id" => -1).limit(1).first()
 			# If no routine is found, return
 			if last_routine_document.nil? or last_routine_document.empty?
 				return nil
@@ -52,7 +99,7 @@ class SparkWorkoutDatabase
 		else
 			# Get the highest routine ID from the routines collection for that type and name
 			last_routine_document = 
-				database["routines"].find("type" => type, "name" => name).sort("_id" => -1).limit(1).first()
+				routines_collection.find("type" => type, "name" => name).sort("_id" => -1).limit(1).first()
 		end
 
 		exercise_result_array = {}
@@ -81,7 +128,7 @@ class SparkWorkoutDatabase
 	end
 
 	# Retrieves the most recent exercise routine for a given exercise
-	def get_all_routines()
+	def get_all_routines(user_id)
 		mongo_client = MongoClient.from_uri(@@database_url)
 		database = mongo_client.db("sparkworkout")
 

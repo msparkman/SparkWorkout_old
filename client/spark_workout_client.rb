@@ -1,5 +1,5 @@
 require 'date'
-require_relative '../server/spark_workout_server'
+require_relative '../server/spark_workout_services'
 
 def save_workout()
 	spark_workout_server = SparkWorkoutServer.new
@@ -95,7 +95,7 @@ end
 while (true)
 	puts "\nSelect an action:"
 	puts "1. Save a workout"
-	puts "2. View a workout"
+	puts "2. View your last workout"
 	puts "3. View all workouts"
 	puts "4. Quit"
 

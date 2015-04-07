@@ -10,8 +10,12 @@
 		document.getElementById(divId).appendChild(newDiv);
 	}
 </script>
+<% if !@e.nil? %>
+<%= @e.message %><br /><br />
+<% end %>
 <h1>Enter your workout:</h1>
 <form method="post" action="/save_workout">
+	<input type="hidden" name="user_id" value="<%=@user_id%>"/>
 	Type: <input type="text" name="type" /><br />
 	Name: <input type="text" name="name" /><br /><br />
 	<div id="setsDiv">
@@ -20,7 +24,7 @@
 		Weight: <input type="text" name="set_array[][weight]" /><br />
 		Comment: <input type="text" name="set_array[][comment]" />
 	</div><br />
-	<input type="button" value="Add another set" onClick="addSet('setsDiv');">
+	<input type="button" value="Add another set" onClick="addSet('setsDiv');" />
 	<br /><br />
 	<input type="submit" value="Save Workout" />
 </form>
