@@ -1,4 +1,5 @@
 require 'date'
+require 'json'
 require 'logger'
 require 'sinatra'
 require_relative 'spark_workout_server'
@@ -12,37 +13,6 @@ set :user_id, BSON::ObjectId("5519cc1aea2f2b13bd000001")
 logger = Logger.new(STDOUT)
 logger.level = Logger::DEBUG
 
-get '/' do
-	if settings.user_id.nil?
-		# Send the user to the login page
-		erb :login
-	else
-		begin
-			username = params[:username]
-			password = params[:password]
-
-			# See if the user exists and if so, set the instance user_id
-			spark_workout_server = SparkWorkoutServer.new
-			temp_user_id = spark_workout_server.login(username, password)
-
-			if temp_user_id.nil?
-				raise "Invalid user credentials"
-			else
-				settings.user_id = temp_user_id
-			end
-
-			# Send the user to the home page
-			erb :index
-		rescue
-			erb :login
-		end
-	end
-end
-
-get '/login' do
-	erb :login
-end
-
 post '/register' do
 	settings.METHOD_NAME = 'register'
 	logger.debug(settings.METHOD_NAME) { 'BEGIN'}
@@ -52,19 +22,9 @@ post '/register' do
 		password = params[:password]
 
 		spark_workout_server = SparkWorkoutServer.new
-		temp_user_id = spark_workout_server.register(username, 
-													 password,
-													 Time.now.strftime("%Y/%m/%d %H:%M"))
-
-		# If the user wasn't registered for some reason, send them back to the login
-		if temp_user_id.nil?
-			raise "Unable to register the user. Please contact a github contributor for this project.<br />"
-		else
-			settings.user_id = temp_user_id
-			erb :index
-		end
-	rescue Exception => @e
-		erb :login
+		return spark_workout_server.register(username, 
+											 password,
+											 Time.now.strftime("%Y/%m/%d %H:%M")).to_json
 	ensure
 		logger.debug(settings.METHOD_NAME) { 'END' }
 	end
@@ -80,16 +40,7 @@ post '/login' do
 
 		spark_workout_server = SparkWorkoutServer.new
 
-		temp_user_id = spark_workout_server.login(username, password)
-
-		if temp_user_id.nil?
-			raise "Unable to login. The username and/or password are incorrect."
-		else
-			settings.user_id = temp_user_id
-			erb :index
-		end
-	rescue Exception => @e
-		erb :login
+		return spark_workout_server.login(username, password).to_json
 	ensure
 		logger.debug(settings.METHOD_NAME) { 'END' }
 	end
@@ -109,9 +60,7 @@ get '/get_last_routine' do
 		name = name.tr(HTML_SPACE, ' ')
 
 		spark_workout_server = SparkWorkoutServer.new
-		return spark_workout_server.get_last_routine(settings.user_id, type, name)
-	rescue Exception => @e
-		erb :index
+		return spark_workout_server.get_last_routine(settings.user_id, type, name).to_json
 	ensure
 		logger.debug(settings.METHOD_NAME) { 'END' }
 	end
@@ -148,11 +97,6 @@ post '/save_workout' do
 			set['weight'], 
 			set['comment'])
 		end
-
-		# Send the index page back out in case they want to enter another routine 
-		erb :index
-	rescue Exception => @e
-		erb :index
 	ensure
 		logger.debug(settings.METHOD_NAME) { 'END' }
 	end
