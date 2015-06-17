@@ -67,10 +67,10 @@ class SparkWorkoutDatabase
 	end
 	
 	# Inserts an exercise document
-	def insert_exercise_set(routine_id, type, name, number_of_reps, weight, comment)
+	def insert_exercise_set(routine_id, number_of_reps, weight, comment)
 		mongo_client = MongoClient.from_uri(@@database_url)
 		database = mongo_client.db("sparkworkout")
-		exercise_collection = database[type + "_" + name]
+		exercise_collection = database["sets"]
 		
 		exercise_document = {"routine_id" => routine_id,		
 							 "num_reps" => number_of_reps, 
@@ -105,7 +105,7 @@ class SparkWorkoutDatabase
 		exercise_result_array = {}
 
 		# Retrieve all records from the collection that have that routine ID and sort in ascending order
-		exercise_collection = database[type + "_" + name]
+		exercise_collection = database["sets"]
 
 		# Return the empty array since no routine or collection as found for that type and name
 		if last_routine_document.nil? or exercise_collection.nil?
@@ -151,7 +151,7 @@ class SparkWorkoutDatabase
 			# Loop through each name document to grab the unique name values
 			name_documents["values"].each do |name|
 				# Retrieve all records from the collection that have that routine ID and sort in ascending order
-				exercise_collection = database[type + "_" + name]
+				exercise_collection = database["sets"]
 
 				# Skip to the next name if this collection doesn't exist
 				if exercise_collection.nil? or exercise_collection.size() < 1

@@ -15,7 +15,7 @@ logger.level = Logger::DEBUG
 
 post '/register' do
 	settings.METHOD_NAME = 'register'
-	logger.debug(settings.METHOD_NAME) { 'BEGIN'}
+	logger.debug(settings.METHOD_NAME) { 'BEGIN' }
 
 	begin
 		username = params[:username]
@@ -24,7 +24,7 @@ post '/register' do
 		spark_workout_server = SparkWorkoutServer.new
 		return spark_workout_server.register(username, 
 											 password,
-											 Time.now.strftime("%Y/%m/%d %H:%M")).to_json
+											 Time.now.strftime("%Y/%m/%d %H:%M:%S")).to_json
 	ensure
 		logger.debug(settings.METHOD_NAME) { 'END' }
 	end

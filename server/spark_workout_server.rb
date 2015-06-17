@@ -82,11 +82,10 @@ class SparkWorkoutServer
 	end
 
 	# Sends an exercise to be inserted in the database
-	def insert_exercise_set(routine_id, type, name, number_of_reps, weight, comment)
+	def insert_exercise_set(routine_id, number_of_reps, weight, comment)
 		# Validate parameters
-		if routine_id.nil? or type.nil? or type.empty? or name.nil? or name.empty? or
-			number_of_reps.nil? or number_of_reps.to_i < 0 or weight.nil? or weight.to_i < 1 or
-			comment.nil? or comment.empty?
+		if routine_id.nil? or number_of_reps.nil? or number_of_reps.to_i < 0 or weight.nil? or 
+			weight.to_i < 1 or comment.nil? or comment.empty?
 			raise ArgumentError, "Incorrect routine ID, date, or user input."
 		end
 
@@ -102,7 +101,7 @@ class SparkWorkoutServer
 		spark_workout_database = SparkWorkoutDatabase.new
 
 		# Insert a routine document and return its Document ID from the database
-		return spark_workout_database.insert_exercise_set(routine_id, type, name, number_of_reps, weight, comment)
+		return spark_workout_database.insert_exercise_set(routine_id, number_of_reps, weight, comment)
 	end
 
 	# Retrieves the information regarding the last routine entered for a given type and name from the database
