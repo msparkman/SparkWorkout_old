@@ -1,6 +1,9 @@
 require 'date'
 require_relative '../server/spark_workout_services'
 
+# TODO this is to be used for testing and should be removed once multiple user support is finished
+set :user_id, BSON::ObjectId("5519cc1aea2f2b13bd000001")
+
 def save_workout()
 	spark_workout_server = SparkWorkoutServer.new
 
@@ -12,7 +15,7 @@ def save_workout()
 	name = gets
 
 	# Insert a routine document
-	routine_id = spark_workout_server.insert_routine(Time.now.strftime("%Y/%m/%d %H:%M"), type, name)
+	routine_id = spark_workout_server.insert_routine(settings.user_id, Time.now.strftime("%Y/%m/%d %H:%M:%S"), type, name)
 
 	if routine_id.nil?
 		return puts "No routine was inserted"
@@ -32,7 +35,7 @@ def save_workout()
 		comment = gets
 
 		# Insert the exercise document
-		spark_workout_server.insert_exercise_set(routine_id, type, name, number_of_reps, weight, comment)
+		spark_workout_server.insert_exercise_set(routine_id, number_of_reps, weight, comment)
 		
 		print "Enter another set? "
 		answer = gets.chomp
@@ -48,7 +51,7 @@ end
 def view_workout(type, name)
 	spark_workout_server = SparkWorkoutServer.new
 
-	last_routine_array = spark_workout_server.get_last_routine(type, name)
+	last_routine_array = spark_workout_server.get_last_routine(settings.user_id, type, name)
 
 	if last_routine_array.nil? or last_routine_array.empty?
 		puts "\nNo routine was found.\n"
@@ -69,7 +72,7 @@ end
 def show_all()
 	spark_workout_server = SparkWorkoutServer.new
 
-	all_routines_array = spark_workout_server.get_all_routines()
+	all_routines_array = spark_workout_server.get_all_routines(settings.user_id)
 
 	if all_routines_array.nil? or all_routines_array.empty?
 		puts "\nNo routines were found.\n"

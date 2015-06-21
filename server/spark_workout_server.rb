@@ -90,10 +90,6 @@ class SparkWorkoutServer
 		end
 
 		# Modify the given information for database use
-		type = type.chomp
-		type = type.downcase.tr(' ', '_')
-		name = name.chomp
-		name = name.downcase.tr(' ', '_')
 		number_of_reps = number_of_reps.chomp
 		weight = weight.chomp
 		comment = comment.chomp

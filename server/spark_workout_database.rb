@@ -4,8 +4,9 @@ include Mongo
 
 # A class for interacting with the SparkWorkout mongodb
 class SparkWorkoutDatabase
-	@@database_url = "mongodb://msparkman:msparkman@ds039960.mongolab.com:39960/sparkworkout"
-	@@database_port = 39960
+	#@@database_url = "mongodb://msparkman:msparkman@ds039960.mongolab.com:39960/sparkworkout"
+	@@database_url = "localhost"
+	@@debug_mode = true
 
 	# Returns a user's user_id
 	def insert_user(username, password, date_created)
@@ -80,15 +81,15 @@ class SparkWorkoutDatabase
 		exercise_collection.insert(exercise_document)
 	end
 	
-	# Retrieves the most recent exercise routine for a given exercise
+	# Retrieves the most recent exercise routine for the given user ID and exercise
 	def get_last_routine(user_id, type, name)
 		mongo_client = MongoClient.from_uri(@@database_url)
 		database = mongo_client.db("sparkworkout")
 		routines_collection = database["routines"]
 
-		# If no type or name were provided, retrieve the last routine entered
+		# If no type or name were provided, retrieve the last routine entered for the user
 		if type.nil? or type.empty? or name.nil? or name.empty?
-			last_routine_document = routines_collection.find().sort("_id" => -1).limit(1).first()
+			last_routine_document = routines_collection.find("user_id" => user_id).sort("_id" => -1).limit(1).first()
 			# If no routine is found, return
 			if last_routine_document.nil? or last_routine_document.empty?
 				return nil
@@ -97,21 +98,21 @@ class SparkWorkoutDatabase
 			type = last_routine_document["type"]
 			name = last_routine_document["name"]
 		else
-			# Get the highest routine ID from the routines collection for that type and name
+			# Get the highest routine ID from the routines collection for the user, type and name
 			last_routine_document = 
-				routines_collection.find("type" => type, "name" => name).sort("_id" => -1).limit(1).first()
+				routines_collection.find("user_id" => user_id, "type" => type, "name" => name).sort("_id" => -1).limit(1).first()
 		end
 
 		exercise_result_array = {}
 
-		# Retrieve all records from the collection that have that routine ID and sort in ascending order
 		exercise_collection = database["sets"]
 
-		# Return the empty array since no routine or collection as found for that type and name
+		# Return the empty array since no routine or collection was found for that type and name
 		if last_routine_document.nil? or exercise_collection.nil?
 			return exercise_result_array
 		end
 
+		# Retrieve all records from the collection that have that routine ID and sort in ascending order
 		exercise_result_cursor = exercise_collection.find("routine_id" => last_routine_document["_id"]).sort("_id" => 1)
 
 		# Loop through each document to populate the array being returned
@@ -127,54 +128,37 @@ class SparkWorkoutDatabase
 		return exercise_result_array
 	end
 
-	# Retrieves the most recent exercise routine for a given exercise
+	# Retrieves all exercise routines for a given user
 	def get_all_routines(user_id)
 		mongo_client = MongoClient.from_uri(@@database_url)
 		database = mongo_client.db("sparkworkout")
+		routines_collection = database["routines"]
+		sets_collection = database["sets"]
 
-		# Grab all the unique routine types so we can grab all their respective routine names
-		routine_types = database["routines"].distinct("type")
+		# Grab all the routines for the given user ID in descending order
+		all_routines_cursor = 
+				routines_collection.find("user_id" => user_id).sort("_id" => -1)
 
 		all_routines_array = Array.new
 
-		# Loop through the types
-		routine_types.each do |type|
-			# Grab all the distinct names for each type
-			name_documents = database.command({
-				"distinct" => "routines",
-				"query" => {
-					"type"=> type
-				},
-				"key" => "name"
-			});
+		all_routines_cursor.each do |routine_row|
+			# Grab all the sets for this routine
+			sets_result_cursor = sets_collection.find("routine_id" => routine_row["_id"]).sort("_id" => 1)
 
-			# Loop through each name document to grab the unique name values
-			name_documents["values"].each do |name|
-				# Retrieve all records from the collection that have that routine ID and sort in ascending order
-				exercise_collection = database["sets"]
+			sets_result_array = {}
 
-				# Skip to the next name if this collection doesn't exist
-				if exercise_collection.nil? or exercise_collection.size() < 1
-					next
-				end
-
-				# Grab all the exercises from this collection
-				exercise_result_cursor = exercise_collection.find().sort("_id" => 1)
-
-				exercise_result_array = {}
-
-				# Loop through each document to populate the array being returned
-				exercise_result_cursor.each do |row| 
-					id = row.delete("_id"); 
-					exercise_result_array["#{id}"] = row 
-				end
-
-				# Add in the type and name
-				exercise_result_array["type"] = type
-				exercise_result_array["name"] = name
-
-				all_routines_array.push(exercise_result_array)
+			# Loop through each document to populate the array being returned
+			sets_result_cursor.each do |row| 
+				id = row.delete("_id"); 
+				sets_result_array["#{id}"] = row 
 			end
+
+			# Add in the type, name, and date
+			sets_result_array["type"] = routine_row["type"]
+			sets_result_array["name"] = routine_row["name"]
+			sets_result_array["date"] = routine_row["date"]
+
+			all_routines_array.push(sets_result_array)			
 		end
 
 		return all_routines_array

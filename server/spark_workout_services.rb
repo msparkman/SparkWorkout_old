@@ -59,6 +59,8 @@ get '/get_last_routine' do
 		type = type.tr(HTML_SPACE, ' ')
 		name = name.tr(HTML_SPACE, ' ')
 
+		puts "user_id: " + settings.user_id
+
 		spark_workout_server = SparkWorkoutServer.new
 		return spark_workout_server.get_last_routine(settings.user_id, type, name).to_json
 	ensure
